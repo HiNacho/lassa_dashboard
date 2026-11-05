@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
-
-const DataContext = createContext(null);
+import { validateNationalRows, validateStateRows } from '../lib/dataValidation';
+import { DataContext } from './dataContextInstance';
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState([]);
@@ -13,32 +13,42 @@ export const DataProvider = ({ children }) => {
   const [selectedState, setSelectedState] = useState('All');
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchData = async () => {
       try {
-        // Fetch National Time Series CSV
-        const csvResponse = await fetch('/dataset/lassa_fever_timeseries_full.csv');
+        setLoading(true);
+        setError(null);
+        const csvResponse = await fetch('/dataset/lassa_fever_timeseries_full.csv', { signal: controller.signal });
+        if (!csvResponse.ok) throw new Error(`National dataset could not be loaded (HTTP ${csvResponse.status}).`);
         const csvText = await csvResponse.text();
         const parsedCsv = Papa.parse(csvText, {
           header: true,
           dynamicTyping: true,
-          skipEmptyLines: true
+          skipEmptyLines: true,
         });
+        if (parsedCsv.errors.length) throw new Error(`National dataset could not be parsed: ${parsedCsv.errors[0].message}`);
+        const nationalValidation = validateNationalRows(parsedCsv.data);
+        if (nationalValidation.errors.length) throw new Error(`National dataset validation failed: ${nationalValidation.errors[0]}`);
         
-        // Fetch State JSON data
-        const stateResponse = await fetch('/dataset/lassa_state_data.json');
+        const stateResponse = await fetch('/dataset/lassa_state_data.json', { signal: controller.signal });
+        if (!stateResponse.ok) throw new Error(`State dataset could not be loaded (HTTP ${stateResponse.status}).`);
         const parsedState = await stateResponse.json();
+        const stateValidation = validateStateRows(parsedState);
+        if (stateValidation.errors.length) throw new Error(`State dataset validation failed: ${stateValidation.errors[0]}`);
 
-        setData(parsedCsv.data);
-        setStateData(parsedState);
+        setData(nationalValidation.valid);
+        setStateData(stateValidation.valid);
         setLoading(false);
       } catch (err) {
+        if (err.name === 'AbortError') return;
         console.error(err);
-        setError(err);
+        setError(err instanceof Error ? err.message : 'An unknown data loading error occurred.');
         setLoading(false);
       }
     };
 
     fetchData();
+    return () => controller.abort();
   }, []);
 
   const years = ['All', ...new Set(data.map(d => d.epi_year))].sort((a, b) => {
@@ -70,5 +80,3 @@ export const DataProvider = ({ children }) => {
     </DataContext.Provider>
   );
 };
-
-export const useData = () => useContext(DataContext);

@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
-import { useData } from '../../context/DataContext';
+import { useData } from '../../context/useData';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleLinear } from 'd3-scale';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Cell } from 'recharts';
+import { normalizeStateName } from '../../lib/geography';
+import { classifyHistoricalBurden } from '../../lib/hotspots';
 
 const geoUrl = '/dataset/nigeria_states.geojson';
 
@@ -14,7 +16,7 @@ export default function SpatialAnalysisTab() {
     if (selectedYear === 'All') {
         const stateMap = {};
         stateData.forEach(row => {
-            const state = row.state_clean;
+            const state = normalizeStateName(row.state_clean);
             if (!state) return;
             if (!stateMap[state]) stateMap[state] = { state, confirmed: 0, deaths: 0 };
             stateMap[state].confirmed += (row.confirmed || 0);
@@ -28,7 +30,7 @@ export default function SpatialAnalysisTab() {
         return stateData
             .filter(d => d.year === selectedYear)
             .map(s => ({
-                state: s.state_clean,
+                state: normalizeStateName(s.state_clean),
                 confirmed: s.confirmed || 0,
                 deaths: s.deaths || 0,
                 cfr: s.confirmed ? ((s.deaths / s.confirmed) * 100).toFixed(1) : 0
@@ -48,7 +50,7 @@ export default function SpatialAnalysisTab() {
     .range(["#1e1b4b", selectedMetric === 'Deaths' ? '#ef4444' : selectedMetric === 'CFR (%)' ? '#eab308' : '#ff5722']);
 
   const getMetricValue = (stateName) => {
-    const s = filteredStateData.find(d => d.state === stateName);
+    const s = filteredStateData.find(d => d.state === normalizeStateName(stateName));
     if (!s) return 0;
     if (selectedMetric === 'Deaths') return s.deaths;
     if (selectedMetric === 'CFR (%)') return Number(s.cfr);
@@ -67,9 +69,9 @@ export default function SpatialAnalysisTab() {
         .filter(s => s.confirmed > 0)
         .sort((a,b) => b.confirmed - a.confirmed)
         .forEach(st => {
-           if (st.confirmed > 150 || Number(st.cfr) > 20) {
+           if (classifyHistoricalBurden(st) === 'high') {
                high.push(st);
-           } else if (st.confirmed > 50 || Number(st.cfr) > 10) {
+           } else if (classifyHistoricalBurden(st) === 'moderate') {
                moderate.push(st);
            } else {
                low.push(st);
@@ -84,7 +86,7 @@ export default function SpatialAnalysisTab() {
          <div>
              <h2 style={{ margin: '0 0 4px', color: 'var(--text-main)', fontSize: '24px' }}>Spatial Analysis</h2>
              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '14px' }}>
-                Detailed Geospatial Hotspot Drill-down ({selectedYear})
+                Annual state reporting burden ({selectedYear}); maintained separately from national weekly totals.
              </p>
          </div>
       </div>
@@ -121,14 +123,14 @@ export default function SpatialAnalysisTab() {
 
         {/* COL 2: Hotspot detection */}
         <div className="glass-card" style={{ flex: 1, padding: '24px', minWidth: '350px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--text-bright)' }}>Hotspot Classification Engine</h3>
+            <h3 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--text-bright)' }}>Provisional Historical Screening</h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', paddingRight: '10px' }}>
                
                <div style={{ padding: '16px', border: '1px solid rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px' }}>
                   <h4 style={{ margin: '0 0 12px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ width:'10px', height:'10px', borderRadius:'50%', background:'#ef4444', boxShadow:'0 0 10px #ef4444' }}></span>
-                      High Risk (Action Required)
+                      Higher historical burden
                   </h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                      {hotspotsData.high.map(st => (
@@ -143,7 +145,7 @@ export default function SpatialAnalysisTab() {
                <div style={{ padding: '16px', border: '1px solid rgba(245, 158, 11, 0.2)', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderRadius: '8px' }}>
                   <h4 style={{ margin: '0 0 12px', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ width:'10px', height:'10px', borderRadius:'50%', background:'#f59e0b', boxShadow:'0 0 10px #f59e0b' }}></span>
-                      Moderate Risk
+                      Moderate historical burden
                   </h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                      {hotspotsData.moderate.map(st => (
@@ -157,7 +159,7 @@ export default function SpatialAnalysisTab() {
                <div style={{ padding: '16px', border: '1px solid rgba(16, 185, 129, 0.2)', backgroundColor: 'rgba(16, 185, 129, 0.05)', borderRadius: '8px' }}>
                   <h4 style={{ margin: '0 0 12px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ width:'10px', height:'10px', borderRadius:'50%', background:'#10b981', boxShadow:'0 0 10px #10b981' }}></span>
-                      Low / Controlled
+                      Lower historical burden
                   </h4>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '100px', overflowY: 'auto' }}>
                      {hotspotsData.low.map(st => (

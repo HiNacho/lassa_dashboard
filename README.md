@@ -9,13 +9,13 @@ A comprehensive, interactive geospatial and temporal analysis dashboard for moni
 
 ## 📋 Overview
 
-The Lassa Fever Dashboard provides epidemiologists, public health officials, and researchers with real-time insights into disease patterns, spatial distribution, and temporal trends. Built with modern web technologies, it enables data-driven decision-making for disease surveillance and intervention planning.
+The Lassa Fever Dashboard is a React-based exploratory visualization of archived Nigerian Lassa fever surveillance observations. It supports transparent national weekly summaries, temporal descriptions, annual state reporting burden maps, and an indicative 12-week trend projection. It is not a real-time surveillance system or validated operational forecasting tool.
 
 ### 🎯 Key Features
 
 - **📍 Spatial Analysis**: Interactive geospatial visualization of Lassa fever cases across Nigerian states
 - **📊 Temporal Trends**: Time-series analysis showing outbreak patterns and seasonal variations
-- **🔮 Forecast Insights**: Predictive analytics for disease trend forecasting
+- **🔮 Indicative Trend Projection**: A transparent, non-trained 12-week heuristic projection
 - **📈 Overview Dashboard**: Summary statistics and key performance indicators
 - **💾 Data Export**: Export processed data and visualizations
 - **🎨 Responsive Design**: Works seamlessly across desktop and tablet devices
@@ -121,6 +121,21 @@ Check code quality:
 ```bash
 npm run lint
 ```
+
+### Tests and data audit
+
+```bash
+npm run test
+npm run audit:data
+```
+
+## Methodological notes
+
+- National CSV values are treated as weekly incident observations and are summed for annual totals.
+- CFR uses deaths and confirmed cases from the same selected national reporting period; a zero or unavailable denominator is shown as N/A.
+- State annual data is maintained separately and does not reconcile with national weekly totals. It is not used to calculate national state shares.
+- The projection is illustrative and not a calibrated forecast or confidence interval.
+- See [data-quality audit](docs/data-quality-audit.md), [data dictionary](docs/data-dictionary.md), and [methodology](docs/methodology.md) for limitations and definitions.
 
 ---
 
