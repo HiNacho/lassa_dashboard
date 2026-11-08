@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
-import { useData } from '../../context/DataContext';
+import { useData } from '../../context/useData';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, Line, ComposedChart, Bar, BarChart, Cell } from 'recharts';
+import { filterByEpiYear, groupByCalendarMonth } from '../../lib/aggregation';
+import { movingAverage, periodGrowthRate } from '../../lib/epidemiology';
 
 export default function TemporalTrendsTab() {
   const { data, loading, selectedYear } = useData();
@@ -14,69 +16,50 @@ export default function TemporalTrendsTab() {
         return a.epi_week - b.epi_week;
     });
 
-    if (selectedYear !== 'All') {
-        return sorted.filter(d => d.epi_year === selectedYear);
-    }
-    return sorted;
+    return filterByEpiYear(sorted, selectedYear);
   }, [data, selectedYear]);
 
   const displayData = useMemo(() => {
     let raw = [];
     if (selectedYear === 'All') {
-        const monthly = {};
-        chartData.forEach(d => {
-            const month = Math.ceil((d.epi_week || 1) / 4.33); 
-            const key = `${d.epi_year}-${month.toString().padStart(2, '0')}`;
-            if (!monthly[key]) monthly[key] = { name: key, cases: 0, deaths: 0 };
-            monthly[key].cases += (d.confirmed_cases || 0);
-            monthly[key].deaths += (d.deaths || 0);
-        });
-        raw = Object.values(monthly).sort((a,b) => a.name.localeCompare(b.name));
+        raw = groupByCalendarMonth(chartData);
     } else {
         raw = chartData.map(d => ({
             name: `W${d.epi_week}`,
-            cases: d.confirmed_cases || 0,
-            deaths: d.deaths || 0
+            cases: d.confirmed_cases,
+            deaths: d.deaths,
         }));
     }
 
     // Add moving average & growth rate
-    return raw.map((d, i, arr) => {
-        let maCases = d.cases;
-        if (i >= 2) {
-           maCases = (arr[i].cases + arr[i-1].cases + arr[i-2].cases) / 3;
-        }
-        let growth = 0;
-        if (i > 0 && arr[i-1].cases > 0) {
-           growth = ((d.cases - arr[i-1].cases) / arr[i-1].cases) * 100;
-        }
-        if (growth > 300) growth = 300; 
-        if (growth < -100) growth = -100;
-
-        return { ...d, maCases: Math.round(maCases), growth: Math.round(growth) };
-    });
+    const averages = movingAverage(raw.map((d) => d.cases), 3);
+    return raw.map((d, i, arr) => ({
+      ...d,
+      maCases: averages[i] === null ? null : Math.round(averages[i]),
+      growth: i === 0 ? null : periodGrowthRate(d.cases, arr[i - 1].cases),
+    }));
   }, [chartData, selectedYear]);
 
   const seasonalData = useMemo(() => {
      if (!data) return [];
      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
      const monthTotals = Array(12).fill(0);
-     data.forEach(d => {
-        const m = Math.min(11, Math.max(0, Math.ceil((d.epi_week || 1) / 4.33) - 1));
-        monthTotals[m] += (d.confirmed_cases || 0);
+     filterByEpiYear(data, selectedYear).forEach(d => {
+        const m = new Date(`${d.week_start_date}T00:00:00Z`).getUTCMonth();
+        if (Number.isFinite(d.confirmed_cases)) monthTotals[m] += d.confirmed_cases;
      });
      return months.map((m, i) => ({ month: m, total: monthTotals[i] }));
-  }, [data]);
+  }, [data, selectedYear]);
 
   if (loading) return <div style={{ padding: '32px' }}>Loading Trends...</div>;
 
   return (
-    <div className="tab-content fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="tab-content fade-in temporal-tab" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
          <div>
              <h2 style={{ margin: '0 0 4px', color: 'var(--text-main)', fontSize: '24px' }}>Temporal Trends</h2>
              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '14px' }}>
-                {selectedYear === 'All' ? 'Aggregated Monthly Trends (2020 - 2025)' : `Weekly Epidemiological Trends for ${selectedYear}`}
+                {selectedYear === 'All' ? 'Calendar-month aggregation of weekly incident observations (2020–2025)' : `Weekly incident observations for ${selectedYear}`}
              </p>
          </div>
       </div>
@@ -86,7 +69,7 @@ export default function TemporalTrendsTab() {
               {/* MAIN SPREAD CHART */}
               <div className="glass-card" style={{ padding: '30px', minHeight: '400px' }}>
                  <h3 style={{ marginTop: 0, marginBottom: '8px', color: 'var(--text-bright)' }}>Confirmed Cases vs Deaths</h3>
-                 <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '12px' }}>With 3-period Moving Average Smoothing</p>
+                 <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '12px' }}>Three-observation trailing moving average (weekly or calendar-month observations)</p>
                  <ResponsiveContainer width="100%" height={300}>
                     <ComposedChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                       <defs>
@@ -102,9 +85,9 @@ export default function TemporalTrendsTab() {
                           contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                           itemStyle={{ fontWeight: 'bold' }}
                       />
-                      <Legend verticalAlign="top" height={36}/>
+                      <Legend layout="vertical" align="left" verticalAlign="top" height={64} wrapperStyle={{ fontSize: 11, lineHeight: '18px' }} />
                       <Area type="monotone" dataKey="cases" name="Confirmed Cases (Raw)" stroke="#ff5722" strokeWidth={1} fillOpacity={1} fill="url(#colorCases)" />
-                      <Line type="monotone" dataKey="maCases" name="Cases (3-wk MA)" stroke="#fcd34d" strokeWidth={3} dot={false} style={{ filter: 'drop-shadow(0 0 4px rgba(252,211,77,0.5))' }} />
+                      <Line type="monotone" dataKey="maCases" name="Cases (3-observation MA)" stroke="#fcd34d" strokeWidth={3} dot={false} connectNulls={false} style={{ filter: 'drop-shadow(0 0 4px rgba(252,211,77,0.5))' }} />
                       <Line type="monotone" dataKey="deaths" name="Deaths" stroke="#ef4444" strokeWidth={2} dot={false} />
                     </ComposedChart>
                  </ResponsiveContainer>
@@ -113,7 +96,7 @@ export default function TemporalTrendsTab() {
               {/* GROWTH RATE CHART */}
               <div className="glass-card" style={{ padding: '24px', minHeight: '300px' }}>
                  <h3 style={{ marginTop: 0, marginBottom: '8px', color: 'var(--text-bright)' }}>Growth Rate (% Period-over-Period)</h3>
-                 <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '12px' }}>Highlighting sudden acceleration in outbreak volume</p>
+                 <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '12px' }}>Not calculated when the preceding observation is zero or missing.</p>
                  <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={displayData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -137,7 +120,7 @@ export default function TemporalTrendsTab() {
               {/* SEASONAL PATTERNS */}
               <div className="glass-card" style={{ padding: '24px', flex: 1 }}>
                  <h3 style={{ marginTop: 0, marginBottom: '8px', color: 'var(--text-bright)' }}>Seasonal Burden</h3>
-                 <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '12px' }}>Total cumulative distributions across all selected years</p>
+                 <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '12px' }}>Observed weekly incident cases grouped by calendar month for the selected period.</p>
                  <ResponsiveContainer width="100%" height={250}>
                     <BarChart layout="vertical" data={seasonalData} margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={true} vertical={false} />
@@ -152,7 +135,7 @@ export default function TemporalTrendsTab() {
                  </ResponsiveContainer>
                  
                  <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(59,130,246,0.1)', borderLeft: '3px solid #3b82f6', borderRadius: '4px' }}>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-main)' }}>Historically, Lassa fever peaks drastically during the dry season (Jan - Mar) due to agricultural and rodent movement patterns.</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-main)' }}>Descriptive seasonal distribution only; this chart does not establish causation or predict future transmission.</p>
                  </div>
               </div>
           </div>

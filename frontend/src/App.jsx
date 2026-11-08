@@ -8,10 +8,20 @@ import TemporalTrendsTab from './components/tabs/TemporalTrendsTab';
 import SpatialAnalysisTab from './components/tabs/SpatialAnalysisTab';
 import ForecastInsightsTab from './components/tabs/ForecastInsightsTab';
 import './index.css';
+import { useData } from './context/useData';
+
+export function DataStatusBoundary({ children }) {
+  const { dataStatus, error } = useData();
+  if (dataStatus === 'loading') return <div style={{ padding: '32px' }} role="status">Loading surveillance data…</div>;
+  if (dataStatus === 'empty') return <div style={{ padding: '32px' }} role="status">No surveillance observations are available.</div>;
+  if (dataStatus === 'error') return <div style={{ padding: '32px', color: '#fca5a5' }} role="alert">Data unavailable: {error}</div>;
+  return children;
+}
 
 function Dashboard() {
   const [theme, setTheme] = useState('dark');
   const [activeTab, setActiveTab] = useState('overview');
+  const [isNavigationOpen, setNavigationOpen] = useState(false);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -36,13 +46,22 @@ function Dashboard() {
 
   return (
     <div className="app-container">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isOpen={isNavigationOpen}
+        onClose={() => setNavigationOpen(false)}
+      />
       <div className="main-content">
-        <Header toggleTheme={toggleTheme} theme={theme} />
+        <Header
+          toggleTheme={toggleTheme}
+          theme={theme}
+          onOpenNavigation={() => setNavigationOpen(true)}
+        />
         
         {/* Dynamic Tab Container */}
         <div className="tab-container">
-           {renderTabContent()}
+           <DataStatusBoundary>{renderTabContent()}</DataStatusBoundary>
         </div>
 
         <Footer />
