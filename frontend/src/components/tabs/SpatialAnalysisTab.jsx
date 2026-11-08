@@ -3,7 +3,7 @@ import { useData } from '../../context/useData';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleLinear } from 'd3-scale';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Cell } from 'recharts';
-import { normalizeStateName } from '../../lib/geography';
+import { normalizeStateName, observationStatus, observationStatusLabel } from '../../lib/geography';
 import { classifyHistoricalBurden } from '../../lib/hotspots';
 
 const geoUrl = '/dataset/nigeria_states.geojson';
@@ -51,7 +51,7 @@ export default function SpatialAnalysisTab() {
 
   const getMetricValue = (stateName) => {
     const s = filteredStateData.find(d => d.state === normalizeStateName(stateName));
-    if (!s) return 0;
+    if (!s) return null;
     if (selectedMetric === 'Deaths') return s.deaths;
     if (selectedMetric === 'CFR (%)') return Number(s.cfr);
     return s.confirmed;
@@ -101,11 +101,13 @@ export default function SpatialAnalysisTab() {
                   geographies.map((geo) => {
                     const stateName = geo.properties.state;
                     const val = getMetricValue(stateName);
+                    const status = observationStatus(filteredStateData.find((item) => item.state === normalizeStateName(stateName)));
                     return (
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        fill={val > 0 ? colorScale(val) : "#0f0f20"}
+                        fill={status === 'missing' ? '#374151' : val > 0 ? colorScale(val) : '#0f0f20'}
+                        aria-label={`${stateName}: ${observationStatusLabel[status]}${status === 'observed' ? `; ${val} selected metric` : ''}`}
                         stroke="#2d3748"
                         strokeWidth={1}
                         style={{
@@ -119,6 +121,7 @@ export default function SpatialAnalysisTab() {
                 }
               </Geographies>
            </ComposableMap>
+           <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>Dark grey: no state observation. Dark map fill: observed zero value.</p>
         </div>
 
         {/* COL 2: Hotspot detection */}

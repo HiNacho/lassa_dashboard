@@ -4,11 +4,12 @@ import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleLinear } from 'd3-scale';
 import { AlertTriangle } from 'lucide-react';
 import { filterByEpiYear, summarizeNational } from '../../lib/aggregation';
+import { observationStatus, observationStatusLabel } from '../../lib/geography';
 
 const geoUrl = '/dataset/nigeria_states.geojson';
 
 export default function OverviewTab() {
-  const { data, stateData, loading, error, selectedYear } = useData();
+  const { data, stateData, selectedYear } = useData();
   const [mapMetric, setMapMetric] = useState('Confirmed');
 
   // KPIS
@@ -40,11 +41,7 @@ export default function OverviewTab() {
 
   const colorScale = scaleLinear().domain([0, maxMapValue]).range(["#1e1b4b", mapMetric === 'Confirmed' ? '#ff5722' : mapMetric === 'Deaths' ? '#ef4444' : '#eab308']);
 
-  if (loading) return <div style={{ padding: '32px' }}>Loading data…</div>;
-  if (error) return <div style={{ padding: '32px', color: '#fca5a5' }}>Data unavailable: {error}</div>;
-
   const topStates = [...filteredStateData].sort((a,b) => b.confirmed - a.confirmed);
-  const activeHotspotState = topStates[0] || { state: 'None' };
   const cfrHigh = nationalKpis.cfr !== null && nationalKpis.cfr > 15;
   const formatNumber = (value) => Number.isFinite(value) ? value.toLocaleString() : 'N/A';
   const formatCfr = (value) => Number.isFinite(value) ? `${value.toFixed(1)}%` : 'N/A';
@@ -53,7 +50,7 @@ export default function OverviewTab() {
     <div className="tab-content fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* ALERT BANNER */}
-      {(topStates[0]?.confirmed > 100 || cfrHigh) && (
+      {cfrHigh && (
          <div className="fade-in" style={{ 
             background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.05) 100%)', 
             borderLeft: '4px solid #ef4444', border: '1px solid rgba(239,68,68,0.2)',
@@ -63,10 +60,9 @@ export default function OverviewTab() {
                 <AlertTriangle size={24} />
              </div>
              <div>
-                <h4 style={{ margin: '0 0 4px', color: '#f87171', fontSize: '15px' }}>Active Outbreak Alert</h4>
+                <h4 style={{ margin: '0 0 4px', color: '#f87171', fontSize: '15px' }}>Historical surveillance screening notice</h4>
                 <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
-                   Historical annual burden is highest in <strong>{activeHotspotState.state}</strong> with {activeHotspotState.confirmed} reported confirmed cases and {activeHotspotState.cfr}% CFR.
-                   {cfrHigh ? " The selected national period has CFR above the provisional 15% screening threshold." : ""} This is not an active-outbreak determination.
+                   The selected national period has CFR above the provisional 15% screening threshold. Historical burden is not sufficient evidence of a currently active outbreak and should not be used alone for response decisions.
                 </p>
              </div>
          </div>
@@ -146,12 +142,14 @@ export default function OverviewTab() {
                       {({ geographies }) => geographies.map((geo) => {
                           const stateName = geo.properties.state;
                           const s = filteredStateData.find(d => d.state === stateName);
-                          const val = s ? (mapMetric === 'Confirmed' ? s.confirmed : mapMetric === 'Deaths' ? s.deaths : Number(s.cfr)) : 0;
+                          const status = observationStatus(s);
+                          const val = s ? (mapMetric === 'Confirmed' ? s.confirmed : mapMetric === 'Deaths' ? s.deaths : Number(s.cfr)) : null;
                           return (
                             <Geography
                               key={geo.rsmKey}
                               geography={geo}
-                              fill={val > 0 ? colorScale(val) : "#1e1b4b"}
+                              fill={status === 'missing' ? '#374151' : val > 0 ? colorScale(val) : '#1e1b4b'}
+                              aria-label={`${stateName}: ${observationStatusLabel[status]}${status === 'observed' ? `; ${val} ${mapMetric}` : ''}`}
                               stroke="rgba(255,255,255,0.1)"
                               strokeWidth={1}
                               style={{ 
@@ -192,6 +190,7 @@ export default function OverviewTab() {
                   </div>
               </div>
           </div>
+          <p style={{ margin: '12px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>Dark grey indicates no state observation; dark purple indicates an observed zero value.</p>
       </div>
       
       {/* TABLE SECTION */}

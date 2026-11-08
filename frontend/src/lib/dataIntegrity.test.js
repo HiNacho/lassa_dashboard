@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { filterByEpiYear, groupByCalendarMonth, summarizeNational } from './aggregation';
 import { caseFatalityRate, movingAverage, periodGrowthRate } from './epidemiology';
-import { matchStates, normalizeStateName } from './geography';
+import { matchStates, normalizeStateName, observationStatus } from './geography';
 import { validateNationalRows } from './dataValidation';
 import { classifyHistoricalBurden } from './hotspots';
 import { buildIndicativeProjection } from './projection';
@@ -56,11 +56,24 @@ describe('validation and geographic matching', () => {
     expect(result.errors[0]).toContain('missing suspected_cases');
   });
 
+  it('rejects malformed, impossible, reversed, and non-weekly dates', () => {
+    for (const patch of [
+      { week_start_date: 'invalid-date' }, { week_start_date: '2024-02-30' },
+      { week_start_date: '2024-01-08', week_end_date: '2024-01-01' }, { week_end_date: '2024-01-08' },
+    ]) expect(validateNationalRows([{ ...weeklyRows[0], ...patch }]).valid).toHaveLength(0);
+  });
+
   it('normalizes approved aliases and reports unmatched geography', () => {
     expect(normalizeStateName(' Federal Capital Territory ')).toBe('FCT');
     const result = matchStates([{ state_clean: 'Abuja' }, { state_clean: 'Unknown State' }], ['FCT']);
     expect(result.matched).toHaveLength(1);
     expect(result.unmatched).toHaveLength(1);
+  });
+
+  it('keeps observed zero distinct from missing and invalid observations', () => {
+    expect(observationStatus({ confirmed: 0, deaths: 0 })).toBe('observed');
+    expect(observationStatus(null)).toBe('missing');
+    expect(observationStatus({ confirmed: null, deaths: 0 })).toBe('invalid');
   });
 });
 
@@ -79,5 +92,14 @@ describe('screening and indicative projection', () => {
     expect(result[2]).toMatchObject({ isForecast: true, cases: null });
     expect(result[2].lower).toBeLessThanOrEqual(result[2].predicted);
     expect(result[2].upper).toBeGreaterThanOrEqual(result[2].predicted);
+  });
+
+  it('creates twelve consecutive seven-day periods across calendar rollover', () => {
+    const rows = [{ ...weeklyRows[0], epi_week: 52, week_start_date: '2024-12-23', week_end_date: '2024-12-29' }];
+    const projections = buildIndicativeProjection(rows).filter((row) => row.isForecast);
+    expect(projections).toHaveLength(12);
+    expect(projections[0].week_start_date).toBe('2024-12-30');
+    expect(projections[1].week_start_date).toBe('2025-01-06');
+    expect(projections[0].week_end_date).toBe('2025-01-05');
   });
 });

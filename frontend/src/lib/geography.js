@@ -24,3 +24,17 @@ export function matchStates(observations, geoStateNames) {
   });
   return { matched, unmatched };
 }
+
+export function observationStatus(record, hasGeography = true) {
+  if (!hasGeography) return 'unavailable_geography';
+  if (!record) return 'missing';
+  if (!Number.isFinite(record.confirmed) || !Number.isFinite(record.deaths)) return 'invalid';
+  return 'observed';
+}
+
+export const observationStatusLabel = {
+  observed: 'Observed state report',
+  missing: 'No state observation available',
+  invalid: 'Invalid state observation',
+  unavailable_geography: 'Geographic boundary unavailable',
+};

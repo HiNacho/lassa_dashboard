@@ -1,5 +1,12 @@
 const requiredNationalFields = ['week_start_date', 'week_end_date', 'epi_year', 'epi_week', 'suspected_cases', 'confirmed_cases', 'probable_cases', 'deaths'];
 
+function parseIsoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day ? date : null;
+}
+
 export function validateNationalRows(rows) {
   if (!Array.isArray(rows) || rows.length === 0) return { valid: [], errors: ['National dataset is empty.'] };
   const errors = [];
@@ -12,7 +19,10 @@ export function validateNationalRows(rows) {
     if (numeric.some((field) => !Number.isFinite(row[field]) || row[field] < 0 || !Number.isInteger(row[field]))) {
       errors.push(`${label}: count or epidemiological fields are invalid.`); return false;
     }
-    if (row.epi_week < 1 || row.epi_week > 53 || Date.parse(row.week_start_date) > Date.parse(row.week_end_date)) {
+    const start = parseIsoDate(row.week_start_date);
+    const end = parseIsoDate(row.week_end_date);
+    const durationDays = start && end ? (end.getTime() - start.getTime()) / 86400000 : null;
+    if (row.epi_week < 1 || row.epi_week > 53 || !start || !end || durationDays !== 6) {
       errors.push(`${label}: reporting dates or epidemiological week are invalid.`); return false;
     }
     const period = `${row.epi_year}-${row.epi_week}`;

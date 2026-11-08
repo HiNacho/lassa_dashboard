@@ -8,6 +8,15 @@ import TemporalTrendsTab from './components/tabs/TemporalTrendsTab';
 import SpatialAnalysisTab from './components/tabs/SpatialAnalysisTab';
 import ForecastInsightsTab from './components/tabs/ForecastInsightsTab';
 import './index.css';
+import { useData } from './context/useData';
+
+function DataStatusBoundary({ children }) {
+  const { dataStatus, error } = useData();
+  if (dataStatus === 'loading') return <div style={{ padding: '32px' }} role="status">Loading surveillance data…</div>;
+  if (dataStatus === 'empty') return <div style={{ padding: '32px' }} role="status">No surveillance observations are available.</div>;
+  if (dataStatus === 'error') return <div style={{ padding: '32px', color: '#fca5a5' }} role="alert">Data unavailable: {error}</div>;
+  return children;
+}
 
 function Dashboard() {
   const [theme, setTheme] = useState('dark');
@@ -42,7 +51,7 @@ function Dashboard() {
         
         {/* Dynamic Tab Container */}
         <div className="tab-container">
-           {renderTabContent()}
+           <DataStatusBoundary>{renderTabContent()}</DataStatusBoundary>
         </div>
 
         <Footer />

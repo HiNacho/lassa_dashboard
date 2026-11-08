@@ -7,6 +7,7 @@ export const DataProvider = ({ children }) => {
   const [data, setData] = useState([]);
   const [stateData, setStateData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dataStatus, setDataStatus] = useState('loading');
   const [error, setError] = useState(null);
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedMetric, setSelectedMetric] = useState('Confirmed Cases');
@@ -17,6 +18,7 @@ export const DataProvider = ({ children }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setDataStatus('loading');
         setError(null);
         const csvResponse = await fetch('/dataset/lassa_fever_timeseries_full.csv', { signal: controller.signal });
         if (!csvResponse.ok) throw new Error(`National dataset could not be loaded (HTTP ${csvResponse.status}).`);
@@ -27,6 +29,7 @@ export const DataProvider = ({ children }) => {
           skipEmptyLines: true,
         });
         if (parsedCsv.errors.length) throw new Error(`National dataset could not be parsed: ${parsedCsv.errors[0].message}`);
+        if (parsedCsv.data.length === 0) { setDataStatus('empty'); setLoading(false); return; }
         const nationalValidation = validateNationalRows(parsedCsv.data);
         if (nationalValidation.errors.length) throw new Error(`National dataset validation failed: ${nationalValidation.errors[0]}`);
         
@@ -38,11 +41,13 @@ export const DataProvider = ({ children }) => {
 
         setData(nationalValidation.valid);
         setStateData(stateValidation.valid);
+        setDataStatus('loaded');
         setLoading(false);
       } catch (err) {
         if (err.name === 'AbortError') return;
         console.error(err);
         setError(err instanceof Error ? err.message : 'An unknown data loading error occurred.');
+        setDataStatus('error');
         setLoading(false);
       }
     };
@@ -68,6 +73,7 @@ export const DataProvider = ({ children }) => {
       filteredData,
       loading,
       error,
+      dataStatus,
       selectedYear,
       setSelectedYear,
       selectedMetric,

@@ -59,7 +59,7 @@ export default function ForecastInsightsTab() {
                     <Legend verticalAlign="top" height={36}/>
                     
                     {/* Illustrative range, not a statistical confidence interval. */}
-                    <Area type="monotone" dataKey="upper" stroke="none" fill="url(#colorInterval)" />
+                    <Area type="monotone" dataKey="upper" name="Illustrative sensitivity range" stroke="none" fill="url(#colorInterval)" />
                     
                     {/* MAIN LINES */}
                     <Area type="monotone" dataKey="cases" name="Actual Cases" stroke="#ff5722" strokeWidth={3} fillOpacity={0} />

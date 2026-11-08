@@ -4,4 +4,6 @@ Phase 1 stabilizes the existing React/Vite dashboard without altering raw source
 
 The project preserves the four analytical views and dark visual design. It removes fabricated suspected-case estimates, trend percentages, targets, trend arrows, trained-AI claims, and confidence claims. The national/state reconciliation discrepancy remains documented rather than modified.
 
+The corrective patch replaces the misleading active-outbreak banner with a historical screening notice, distinguishes missing map observations from observed zeros, validates reporting dates strictly, centralizes data loading states, and adds consecutive calendar dates to the indicative projection.
+
 Known limitations: state annual definitions remain unreconciled to national weekly reporting; source revisions are not versioned; state data cannot support weekly spatial trends; the projection is not validated; and hotspot thresholds remain provisional screening criteria.

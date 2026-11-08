@@ -46,7 +46,7 @@ export default function TemporalTrendsTab() {
      const monthTotals = Array(12).fill(0);
      filterByEpiYear(data, selectedYear).forEach(d => {
         const m = new Date(`${d.week_start_date}T00:00:00Z`).getUTCMonth();
-        monthTotals[m] += (d.confirmed_cases || 0);
+        if (Number.isFinite(d.confirmed_cases)) monthTotals[m] += d.confirmed_cases;
      });
      return months.map((m, i) => ({ month: m, total: monthTotals[i] }));
   }, [data, selectedYear]);
