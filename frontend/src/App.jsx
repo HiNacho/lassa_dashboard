@@ -21,6 +21,7 @@ export function DataStatusBoundary({ children }) {
 function Dashboard() {
   const [theme, setTheme] = useState('dark');
   const [activeTab, setActiveTab] = useState('overview');
+  const [isNavigationOpen, setNavigationOpen] = useState(false);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -45,9 +46,18 @@ function Dashboard() {
 
   return (
     <div className="app-container">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isOpen={isNavigationOpen}
+        onClose={() => setNavigationOpen(false)}
+      />
       <div className="main-content">
-        <Header toggleTheme={toggleTheme} theme={theme} />
+        <Header
+          toggleTheme={toggleTheme}
+          theme={theme}
+          onOpenNavigation={() => setNavigationOpen(true)}
+        />
         
         {/* Dynamic Tab Container */}
         <div className="tab-container">

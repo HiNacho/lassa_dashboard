@@ -47,7 +47,7 @@ export default function OverviewTab() {
   const formatCfr = (value) => Number.isFinite(value) ? `${value.toFixed(1)}%` : 'N/A';
 
   return (
-    <div className="tab-content fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="tab-content fade-in overview-tab" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* ALERT BANNER */}
       {cfrHigh && (
@@ -69,7 +69,7 @@ export default function OverviewTab() {
       )}
 
       {/* TOP CARDS ROW */}
-      <div style={{ display: 'flex', gap: '24px' }}>
+      <div className="kpi-groups" style={{ display: 'flex', gap: '24px' }}>
          <div className="glass-card" style={{ flex: 1, padding: '24px' }}>
             <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: 'var(--text-main)' }}>Cases Overview</h3>
             <p style={{ margin: '0 0 24px', fontSize: '14px', color: 'var(--text-muted)' }}>Confirmed vs. Suspected volume.</p>
@@ -135,8 +135,8 @@ export default function OverviewTab() {
               </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1.5, height: '400px', display: 'flex', justifyContent: 'center' }}>
+          <div className="overview-map-layout" style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
+              <div className="overview-map" style={{ flex: 1.5, height: '400px', display: 'flex', justifyContent: 'center' }}>
                  <ComposableMap projection="geoMercator" projectionConfig={{ scale: 2600, center: [8.5, 9.5] }} style={{ width: '100%', height: '100%' }}>
                     <Geographies geography={geoUrl}>
                       {({ geographies }) => geographies.map((geo) => {
@@ -165,7 +165,7 @@ export default function OverviewTab() {
                  </ComposableMap>
               </div>
 
-              <div style={{ flex: 1, minWidth: '300px' }}>
+              <div className="overview-rankings" style={{ flex: 1, minWidth: '300px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1fr) 80px 60px', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.1)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', borderRadius: '8px 8px 0 0' }}>
                      <div>States</div>
                      <div style={{ textAlign: 'right' }}>Burden</div>
@@ -199,8 +199,8 @@ export default function OverviewTab() {
              <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--text-main)' }}>Breakdown By State</h3>
              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Sorted by Confirmed Cases Volume</span>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="table-scroll" style={{ overflowX: 'auto' }}>
+            <table className="state-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', fontSize: '12px', color: 'var(--text-muted)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                      <th style={{ padding: '16px', fontWeight: 500, borderRadius: '8px 0 0 0' }}>State</th>

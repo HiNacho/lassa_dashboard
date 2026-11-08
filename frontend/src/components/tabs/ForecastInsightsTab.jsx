@@ -22,7 +22,7 @@ export default function ForecastInsightsTab() {
   }, [data, selectedYear]);
 
   return (
-    <div className="tab-content fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="tab-content fade-in forecast-tab" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
          <div>
              <h2 style={{ margin: '0 0 4px', color: 'var(--text-main)', fontSize: '24px' }}>Indicative Trend Projection</h2>
@@ -56,7 +56,7 @@ export default function ForecastInsightsTab() {
                     <RechartsTooltip 
                         contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                     />
-                    <Legend verticalAlign="top" height={36}/>
+                    <Legend layout="vertical" align="left" verticalAlign="top" height={64} wrapperStyle={{ fontSize: 11, lineHeight: '18px' }} />
                     
                     {/* Illustrative range, not a statistical confidence interval. */}
                     <Area type="monotone" dataKey="upper" name="Illustrative sensitivity range" stroke="none" fill="url(#colorInterval)" />

@@ -81,7 +81,7 @@ export default function SpatialAnalysisTab() {
   }, [filteredStateData]);
 
   return (
-    <div className="tab-content fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="tab-content fade-in spatial-tab" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
          <div>
              <h2 style={{ margin: '0 0 4px', color: 'var(--text-main)', fontSize: '24px' }}>Spatial Analysis</h2>
@@ -91,9 +91,9 @@ export default function SpatialAnalysisTab() {
          </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', flex: 1 }}>
+      <div className="spatial-map-layout" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', flex: 1 }}>
         {/* MAP */}
-        <div className="glass-card" style={{ flex: 2, padding: '24px', display: 'flex', flexDirection: 'column', minHeight: '450px' }}>
+        <div className="glass-card spatial-map-card" style={{ flex: 2, padding: '24px', display: 'flex', flexDirection: 'column', minHeight: '450px' }}>
            <h3 style={{ marginTop: 0, color: 'var(--text-bright)' }}>Choropleth Projection</h3>
            <ComposableMap projection="geoMercator" projectionConfig={{ scale: 3000, center: [8.5, 9.5] }} style={{ width: '100%', flex: 1 }}>
               <Geographies geography={geoUrl}>
@@ -125,7 +125,7 @@ export default function SpatialAnalysisTab() {
         </div>
 
         {/* COL 2: Hotspot detection */}
-        <div className="glass-card" style={{ flex: 1, padding: '24px', minWidth: '350px', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card spatial-screening-card" style={{ flex: 1, padding: '24px', minWidth: '350px', display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--text-bright)' }}>Provisional Historical Screening</h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', paddingRight: '10px' }}>
@@ -177,7 +177,7 @@ export default function SpatialAnalysisTab() {
       </div>
 
       {/* BOTTOM ROW: CFR & Burden list */}
-      <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+      <div className="spatial-lower-layout" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
          <div className="glass-card" style={{ flex: 2, padding: '24px', minHeight: '300px' }}>
             <h3 style={{ marginTop: 0, marginBottom: '8px', color: 'var(--text-bright)' }}>Regional Case Fatality Rate Discrepancies</h3>
             <p style={{ margin: '0 0 20px', color: 'var(--text-muted)', fontSize: '12px' }}>Highlighting states with unusually high mortality (% CFR)</p>
@@ -200,7 +200,7 @@ export default function SpatialAnalysisTab() {
             </ResponsiveContainer>
          </div>
 
-         <div className="glass-card" style={{ flex: 1, padding: '24px', minWidth: '300px' }}>
+         <div className="glass-card spatial-ranking-card" style={{ flex: 1, padding: '24px', minWidth: '300px' }}>
              <h3 style={{ marginTop: 0, color: 'var(--text-bright)' }}>State Burden Ranking</h3>
              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
                {topStates.slice(0, 5).map((st, i) => (

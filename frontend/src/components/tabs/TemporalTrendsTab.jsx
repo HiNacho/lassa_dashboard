@@ -54,7 +54,7 @@ export default function TemporalTrendsTab() {
   if (loading) return <div style={{ padding: '32px' }}>Loading Trends...</div>;
 
   return (
-    <div className="tab-content fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div className="tab-content fade-in temporal-tab" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
          <div>
              <h2 style={{ margin: '0 0 4px', color: 'var(--text-main)', fontSize: '24px' }}>Temporal Trends</h2>
@@ -85,7 +85,7 @@ export default function TemporalTrendsTab() {
                           contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                           itemStyle={{ fontWeight: 'bold' }}
                       />
-                      <Legend verticalAlign="top" height={36}/>
+                      <Legend layout="vertical" align="left" verticalAlign="top" height={64} wrapperStyle={{ fontSize: 11, lineHeight: '18px' }} />
                       <Area type="monotone" dataKey="cases" name="Confirmed Cases (Raw)" stroke="#ff5722" strokeWidth={1} fillOpacity={1} fill="url(#colorCases)" />
                       <Line type="monotone" dataKey="maCases" name="Cases (3-observation MA)" stroke="#fcd34d" strokeWidth={3} dot={false} connectNulls={false} style={{ filter: 'drop-shadow(0 0 4px rgba(252,211,77,0.5))' }} />
                       <Line type="monotone" dataKey="deaths" name="Deaths" stroke="#ef4444" strokeWidth={2} dot={false} />

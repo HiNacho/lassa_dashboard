@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { useData } from '../context/useData';
-import { CalendarDays, ChevronDown } from 'lucide-react';
+import { CalendarDays, ChevronDown, Menu } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ onOpenNavigation }) {
   const { years, selectedYear, setSelectedYear } = useData();
   const [showPicker, setShowPicker] = useState(false);
 
   return (
-    <div className="header-container" style={{ padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'transparent', borderBottom: '1px solid var(--card-border)' }}>
+    <header className="header-container">
        <div className="header-title">
+         <button type="button" className="menu-button" aria-label="Open navigation menu" onClick={onOpenNavigation}><Menu size={22} /></button>
          <h1>Dashboard</h1>
        </div>
        
-       <div style={{ position: 'relative' }}>
+       <div className="year-selector" style={{ position: 'relative' }}>
           <button 
              onClick={() => setShowPicker(!showPicker)}
              className="glass-card fade-in"
@@ -61,6 +62,6 @@ export default function Header() {
               </div>
           )}
        </div>
-    </div>
+    </header>
   );
 }
