@@ -37,40 +37,40 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
       <aside className={`sidebar expanded-sidebar ${isOpen ? 'is-open' : ''}`} aria-label="Primary navigation">
       <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '24px 20px', marginBottom: '10px' }}>
          <ThermometerIcon />
-         <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff', letterSpacing: '0.5px' }}>Lassa Tracer</span>
-         <span style={{ background: '#22c55e', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', marginLeft: 'auto' }}>LIVE</span>
+         <span className="sidebar-brand">Lassa Tracer</span>
+         <span className="data-status-badge">HISTORICAL</span>
          <button ref={closeButtonRef} className="sidebar-close" type="button" aria-label="Close navigation menu" onClick={onClose}><X size={20} /></button>
       </div>
       
       <div className="sidebar-nav">
          <div className="nav-section">
             <h4 className="nav-heading">ACTION CENTRE</h4>
-            <button type="button" className="nav-item"><Home size={18} /> Home</button>
+            <button type="button" className="nav-item" disabled title="Home is not available in this historical dashboard"><Home size={18} /><span className="nav-label">Home</span></button>
          </div>
 
          <div className="nav-section">
             <h4 className="nav-heading">INSIGHTS</h4>
             <button type="button" className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => selectTab('overview')}>
-               <LayoutDashboard size={18} /> Dashboard
+               <LayoutDashboard size={18} /><span className="nav-label">Dashboard</span>
             </button>
-            <button type="button" className={`nav-item ${activeTab === 'custom' ? 'active' : ''}`} onClick={() => selectTab('custom')}>
-               <LayoutDashboard size={18} /> Custom Dashboard
+            <button type="button" className="nav-item" disabled title="Custom Dashboard is not available">
+               <LayoutDashboard size={18} /><span className="nav-label">Custom Dashboard</span>
             </button>
          </div>
 
          <div className="nav-section">
             <h4 className="nav-heading">ENGAGEMENTS</h4>
             <button type="button" className={`nav-item ${activeTab === 'temporal' ? 'active' : ''}`} onClick={() => selectTab('temporal')}>
-               <Activity size={18} /> Temporal Trends
+               <Activity size={18} /><span className="nav-label">Temporal Trends</span>
             </button>
             <button type="button" className={`nav-item ${activeTab === 'spatial' ? 'active' : ''}`} onClick={() => selectTab('spatial')}>
-               <Map size={18} /> Spatial Analysis
+               <Map size={18} /><span className="nav-label">Spatial Analysis</span>
             </button>
             <button type="button" className={`nav-item ${activeTab === 'forecast' ? 'active' : ''}`} onClick={() => selectTab('forecast')}>
-               <Lightbulb size={18} /> Forecasts
+               <Lightbulb size={18} /><span className="nav-label">Forecasts</span>
             </button>
-            <button type="button" className="nav-item"><AlertTriangle size={18} /> Hotspots</button>
-            <button type="button" className="nav-item"><FileText size={18} /> Logs</button>
+            <button type="button" className="nav-item" disabled title="Hotspots is not available"><AlertTriangle size={18} /><span className="nav-label">Hotspots</span></button>
+            <button type="button" className="nav-item" disabled title="Logs is not available"><FileText size={18} /><span className="nav-label">Logs</span></button>
          </div>
       </div>
 

@@ -26,4 +26,21 @@ describe('responsive navigation drawer', () => {
     expect(setActiveTab).toHaveBeenCalledWith('spatial');
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('identifies the static dataset as historical and exposes active navigation state', () => {
+    render(<Sidebar activeTab="forecast" setActiveTab={vi.fn()} isOpen={false} onClose={vi.fn()} />);
+
+    expect(screen.getByText('HISTORICAL')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Forecasts' })).toHaveClass('active');
+    expect(screen.getByRole('button', { name: 'Dashboard' })).not.toHaveClass('active');
+  });
+
+  it('keeps placeholder destinations visibly non-interactive', () => {
+    render(<Sidebar activeTab="overview" setActiveTab={vi.fn()} isOpen={false} onClose={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Home' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Custom Dashboard' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Hotspots' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Logs' })).toBeDisabled();
+  });
 });

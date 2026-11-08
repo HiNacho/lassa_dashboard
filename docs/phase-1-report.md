@@ -20,4 +20,14 @@ Browser viewport verification was performed using explicit overrides after the c
 
 Automated regression coverage includes Escape-key dismissal and destination-selection closure for the responsive drawer.
 
+## Final sidebar presentation polish
+
+The final visual review identified that the responsive navigation work had converted sidebar entries from `div` elements to native `button` elements without defining a default `background`, `border`, or `appearance`. Browser-default button rendering therefore appeared as white inactive rectangles in some desktop and tablet contexts. The correction explicitly resets native button presentation within the sidebar, retains the purple active state, introduces a subdued hover treatment, and adds a high-contrast purple `:focus-visible` indicator without removing keyboard focus feedback.
+
+Only implemented destinations remain enabled. Home, Custom Dashboard, Hotspots, and Logs are currently placeholders, so they are disabled and visually non-interactive rather than suggesting unavailable destinations can be opened. Navigation labels are explicit spans, allowing the tablet icon rail to hide labels reliably and the mobile drawer to restore them.
+
+The prior green `LIVE` badge was scientifically inaccurate for static 2020–2025 source files. It is now the neutral, compact `HISTORICAL` badge, preserving application identity while avoiding any implication of real-time surveillance or automated ingestion. Targeted tests now cover badge wording, selected navigation state, disabled placeholders, Escape-key dismissal, and destination-selection drawer closure.
+
+Final verification after this polish: 23 Vitest assertions passed; the reproducible audit retained 313 national rows and 222 state rows with no parsing or validation errors; ESLint and the production build passed. The existing non-blocking production-bundle-size warning remains.
+
 Known limitations: state annual definitions remain unreconciled to national weekly reporting; source revisions are not versioned; state data cannot support weekly spatial trends; the projection is not validated; and hotspot thresholds remain provisional screening criteria.
