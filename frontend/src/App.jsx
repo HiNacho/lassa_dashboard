@@ -10,7 +10,7 @@ import ForecastInsightsTab from './components/tabs/ForecastInsightsTab';
 import './index.css';
 import { useData } from './context/useData';
 
-function DataStatusBoundary({ children }) {
+export function DataStatusBoundary({ children }) {
   const { dataStatus, error } = useData();
   if (dataStatus === 'loading') return <div style={{ padding: '32px' }} role="status">Loading surveillance data…</div>;
   if (dataStatus === 'empty') return <div style={{ padding: '32px' }} role="status">No surveillance observations are available.</div>;

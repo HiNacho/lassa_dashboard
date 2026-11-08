@@ -11,3 +11,5 @@ For maps, an observed zero is distinct from a missing, invalid, or geographicall
 The indicative trend projection extends the last eligible weekly national value for 12 epidemiological weeks with a damped recent trend plus a simple seasonal term. Its 70%–140% display range is illustrative, not a confidence or prediction interval. It is not a trained model and must not guide operations. A future model requires versioned input data, revision policy, held-out temporal evaluation, calibration, and reported accuracy.
 
 Projection periods use consecutive seven-day calendar reporting dates after the final eligible observation. Calendar dates take precedence over epidemiological-week labels when conventions cannot be independently verified.
+
+Malformed, empty, or invalid source datasets enter a shared loading, empty, or error state and are not passed into analytical views.

@@ -36,6 +36,7 @@ export const DataProvider = ({ children }) => {
         const stateResponse = await fetch('/dataset/lassa_state_data.json', { signal: controller.signal });
         if (!stateResponse.ok) throw new Error(`State dataset could not be loaded (HTTP ${stateResponse.status}).`);
         const parsedState = await stateResponse.json();
+        if (!Array.isArray(parsedState) || parsedState.length === 0) { setDataStatus('empty'); setLoading(false); return; }
         const stateValidation = validateStateRows(parsedState);
         if (stateValidation.errors.length) throw new Error(`State dataset validation failed: ${stateValidation.errors[0]}`);
 
